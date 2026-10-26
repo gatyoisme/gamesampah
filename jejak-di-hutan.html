@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jejak di Hutan – Misi Bertahan Hidup</title>
+<style>
+:root{
+  --bg:#0b1a14; --card:#17332a; --card2:#1d3f33; --line:rgba(255,255,255,.12);
+  --txt:#f3efe2; --muted:#a9bdb1; --moss:#7bd389; --amber:#ffb347;
+  --good:#7bd389; --ok:#ffcf5c; --bad:#ff7a7a;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#050d09;color:var(--txt);font-family:"Trebuchet MS","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;overflow:hidden}
+body{display:flex;align-items:center;justify-content:center}
+
+/* ===== Kerangka utama (tinggi maksimal 600px) ===== */
+.app{position:relative;width:100%;max-width:960px;height:100vh;height:100dvh;max-height:600px;display:flex;flex-direction:column;background:radial-gradient(120% 90% at 50% 0%,#1c4033 0%,var(--bg) 62%);overflow:hidden}
+@media (min-width:640px) and (min-height:640px){.app{border-radius:18px;border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.6)}}
+.screens{flex:1;min-height:0;position:relative}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;min-height:0}
+.screen.active{display:flex;animation:fade .4s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.copy{flex:none;text-align:center;font-size:10px;color:rgba(243,239,226,.55);padding:3px 8px 4px;letter-spacing:.3px;background:rgba(0,0,0,.28)}
+
+/* ===== Tombol BGM ===== */
+.bgm{position:absolute;top:7px;right:8px;z-index:20;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.22);background:rgba(10,25,19,.78);color:var(--moss);display:grid;place-items:center;cursor:pointer;transition:color .2s,background .2s}
+.bgm svg{width:22px;height:22px}
+.bgm .waves{transition:opacity .2s}
+.bgm .slash{opacity:0;transition:opacity .2s}
+.bgm.off{color:var(--muted);background:rgba(10,25,19,.6)}
+.bgm.off .waves{opacity:0}
+.bgm.off .slash{opacity:1}
+.bgm.on::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--moss);opacity:0;animation:ring 2.4s ease-out infinite}
+@keyframes ring{0%{transform:scale(.85);opacity:.7}100%{transform:scale(1.3);opacity:0}}
+
+/* ===== Ilustrasi ===== */
+.art{border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#000;flex:none}
+.art svg{width:100%;height:100%;display:block}
+.tw{animation:tw 3s ease-in-out infinite}@keyframes tw{50%{opacity:.25}}
+.flame{transform-box:fill-box;transform-origin:50% 100%;animation:fl .5s ease-in-out infinite alternate}
+.flame.f2{animation-duration:.35s}
+@keyframes fl{from{transform:scale(1,1) rotate(-3deg)}to{transform:scale(.9,1.14) rotate(3deg)}}
+.glow{animation:gl 1.2s ease-in-out infinite alternate}@keyframes gl{from{opacity:.55}to{opacity:1}}
+.drop{stroke:#a9d3ee;stroke-width:1;opacity:.6;animation:rain .7s linear infinite}
+@keyframes rain{from{transform:translate(0,-12px)}to{transform:translate(-6px,125px)}}
+.fog{animation:drift 14s ease-in-out infinite alternate}
+.fog.f2{animation-duration:19s;animation-direction:alternate-reverse}
+@keyframes drift{from{transform:translateX(-18px)}to{transform:translateX(18px)}}
+.rotor{transform-box:fill-box;transform-origin:center;animation:rotor .12s linear infinite alternate}
+@keyframes rotor{from{transform:scaleX(1)}to{transform:scaleX(.2)}}
+.glint{transform-box:fill-box;transform-origin:center;animation:glint 1s ease-in-out infinite}
+@keyframes glint{0%,100%{transform:scale(.4);opacity:.3}50%{transform:scale(1.2);opacity:1}}
+.bolt{animation:bolt 3.5s infinite}@keyframes bolt{0%,88%,100%{opacity:0}90%,94%{opacity:1}92%{opacity:.2}}
+.shim{stroke-dasharray:6 8;animation:shim 3s linear infinite}@keyframes shim{to{stroke-dashoffset:-28}}
+.eyes{animation:blink 5s infinite}@keyframes blink{0%,92%,100%{opacity:1}95%{opacity:0}}
+
+/* ===== Layar mulai ===== */
+.start{align-items:center;overflow-y:auto;padding:12px}
+.start .card{width:100%;max-width:520px;margin:auto;display:flex;flex-direction:column;gap:10px}
+.start .art{height:118px}
+.eyebrow{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--amber);font-weight:700}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:30px;line-height:1.05;letter-spacing:.5px}
+.lead{font-size:14px;line-height:1.55;color:#d9e3da}
+form{display:flex;flex-direction:column;gap:8px}
+label{font-size:13px;font-weight:700;color:var(--moss)}
+input[type=text]{width:100%;min-height:48px;padding:11px 14px;font:inherit;font-size:16px;color:var(--txt);background:rgba(0,0,0,.38);border:1.5px solid rgba(255,255,255,.2);border-radius:12px;outline:none;transition:border-color .2s}
+input[type=text]:focus{border-color:var(--moss)}
+input[type=text]::placeholder{color:#7f968a}
+.err{font-size:12.5px;color:var(--bad)}
+.hint{font-size:11.5px;color:var(--muted);line-height:1.45}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+.btn{display:block;width:100%;min-height:48px;padding:12px 16px;border:0;border-radius:12px;background:linear-gradient(180deg,#ffc766,#f0932b);color:#2a1700;font:inherit;font-weight:800;font-size:15px;letter-spacing:.3px;cursor:pointer;box-shadow:0 4px 0 #b86a14,0 8px 18px rgba(0,0,0,.35);transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #b86a14}
+
+/* ===== Layar permainan ===== */
+.hud{flex:none;display:flex;align-items:center;gap:10px;padding:8px 56px 6px 10px}
+.player{display:flex;align-items:center;gap:6px;font-weight:700;font-size:13px;min-width:0;max-width:36%}
+.player .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scorebar{flex:1;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:999px;padding:6px 12px;min-width:0}
+.scorebar .lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
+.scorebar .track{flex:1;height:8px;background:rgba(255,255,255,.13);border-radius:99px;overflow:hidden}
+.scorebar .track i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--moss),var(--amber));border-radius:99px;transition:width .6s}
+.scorebar b{font-variant-numeric:tabular-nums;font-size:13px;min-width:28px;text-align:right}
+.pop{animation:popn .5s}@keyframes popn{40%{transform:scale(1.25)}}
+
+.main{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:0 10px 8px}
+.side{flex:none;display:flex;flex-direction:column;gap:6px}
+.side .art{height:92px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stat{background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:10px;padding:4px 6px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.stat .row{display:flex;justify-content:space-between;gap:2px;font-size:10.5px;color:var(--muted);white-space:nowrap}
+.stat .row b{color:var(--txt);font-variant-numeric:tabular-nums}
+.stat .bar{height:6px;border-radius:9px;background:rgba(255,255,255,.13);overflow:hidden}
+.stat .bar i{display:block;height:100%;border-radius:9px;transition:width .5s}
+.stat.hp i{background:#ff6b6b}.stat.water i{background:#5cc8ff}.stat.energy i{background:#ffb347}.stat.morale i{background:#b69cff}
+.stat.low{animation:lowp 1s infinite}@keyframes lowp{50%{box-shadow:0 0 0 2px rgba(255,107,107,.65)}}
+.inv{display:flex;gap:5px;overflow-x:auto;padding:2px 0;scrollbar-width:none;align-items:center}
+.inv::-webkit-scrollbar{display:none}
+.inv .t{flex:none;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.chip{flex:none;font-size:11.5px;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.09);border:1px solid var(--line);white-space:nowrap}
+.chip.new{animation:popn .7s;border-color:var(--moss)}
+
+.story{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:14px;padding:12px 12px 16px;
+  /* bayangan scroll: memberi petunjuk bila masih ada isi di bawah/atas */
+  background:
+    linear-gradient(var(--card) 30%,rgba(23,51,42,0)) top/100% 36px no-repeat local,
+    linear-gradient(rgba(23,51,42,0),var(--card) 70%) bottom/100% 36px no-repeat local,
+    radial-gradient(farthest-side at 50% 0,rgba(0,0,0,.45),rgba(0,0,0,0)) top/100% 12px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%,rgba(0,0,0,.45),rgba(0,0,0,0)) bottom/100% 12px no-repeat scroll,
+    var(--card)}
+.tag{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);font-weight:700}
+.prog{height:4px;border-radius:9px;background:rgba(255,255,255,.12);margin:6px 0 10px;overflow:hidden}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--moss),var(--amber))}
+h2{font-family:Georgia,"Times New Roman",serif;font-size:19px;line-height:1.2;margin-bottom:8px;outline:none}
+.narr{font-size:14.5px;line-height:1.55;color:#e7eee8;margin-bottom:10px}
+.choices{display:flex;flex-direction:column;gap:8px}
+.choice{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;min-height:46px;padding:10px 12px;background:var(--card2);border:1px solid rgba(255,255,255,.15);border-radius:12px;color:var(--txt);font:inherit;font-size:14px;line-height:1.4;cursor:pointer;transition:transform .12s,background .2s,border-color .2s}
+.choice:hover:not([disabled]){background:#25503f;border-color:var(--moss)}
+.choice:active:not([disabled]){transform:scale(.985)}
+.choice .k{flex:none;width:24px;height:24px;border-radius:50%;background:rgba(123,211,137,.2);color:var(--moss);display:grid;place-items:center;font-weight:700;font-size:12px;margin-top:1px}
+.choice[disabled]{opacity:.5;cursor:not-allowed}
+.need{display:block;font-size:11.5px;color:var(--amber);margin-top:3px}
+.picked{font-size:12.5px;color:var(--muted);margin-bottom:8px;line-height:1.4}
+.picked b{color:var(--txt)}
+.fb{border-radius:12px;padding:12px;background:rgba(0,0,0,.28);border-left:4px solid var(--ok);animation:fade .35s}
+.fb.good{border-color:var(--good)}.fb.bad{border-color:var(--bad)}
+.fb h3{font-size:14.5px;margin-bottom:5px}
+.fb p{font-size:14px;line-height:1.55}
+.fb p.warn{color:#ffb4b4;font-size:13px;margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0 2px}
+.delta{font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.09)}
+.delta.pos{color:var(--good)}.delta.neg{color:var(--bad)}
+.tip{background:rgba(255,179,71,.1);border:1px dashed rgba(255,179,71,.5);padding:9px 11px;border-radius:10px;font-size:13px;line-height:1.5;color:#ffe2b8;margin:10px 0 12px}
+
+/* ===== Layar akhir ===== */
+.endwrap{flex:1;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch}
+.end{width:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.end .art{height:112px}
+.stars{font-size:30px;letter-spacing:6px;text-align:center;color:#47594f}
+.stars .on{color:#ffc84a;text-shadow:0 0 12px rgba(255,200,74,.6)}
+.end h2{text-align:center;font-size:22px;margin:0}
+.end .lead{text-align:center}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.summary div{background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:12px;padding:8px 4px;text-align:center}
+.summary b{display:block;font-size:20px;color:var(--amber)}
+.summary span{font-size:11px;color:var(--muted)}
+.learn{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.learn h3{font-size:13px;color:var(--moss);margin-bottom:6px}
+.learn ul{padding-left:18px;font-size:13px;line-height:1.55;color:#dfe8e0}
+.learn li{margin-bottom:3px}
+
+/* ===== Responsif ===== */
+@media (min-width:720px){
+  .main{flex-direction:row;gap:12px;padding:0 14px 10px}
+  .side{width:40%;overflow-y:auto}
+  .side .art{height:150px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .story{padding:16px 18px}
+  h2{font-size:21px}
+  .narr{font-size:15px}
+  .choice{font-size:14.5px}
+  .hud{padding:10px 60px 8px 14px}
+}
+@media (max-height:540px) and (max-width:719px){.side .art{height:84px}.start .art{height:90px}}
+@media (max-width:340px){h1{font-size:25px}.stat .row{font-size:9.5px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<main class="app" id="app">
+  <button class="bgm on" id="bgmBtn" type="button" aria-pressed="true" aria-label="Musik latar: nyala. Ketuk untuk mematikan" title="Musik latar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M11 5 6 9H3v6h3l5 4V5z" fill="currentColor"/>
+      <g class="waves"><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></g>
+      <g class="slash"><line x1="16" y1="9" x2="22" y2="15"/><line x1="22" y1="9" x2="16" y2="15"/></g>
+    </svg>
+  </button>
+
+  <div class="screens">
+    <!-- ===== LAYAR MULAI ===== -->
+    <section class="screen start active" id="screen-start">
+      <div class="card">
+        <div class="art" id="startArt"></div>
+        <span class="eyebrow">Misi Bertahan Hidup</span>
+        <h1>Jejak di Hutan</h1>
+        <p class="lead">Senja turun, jalur setapak lenyap, dan kamu sendirian. Tiga hari, perlengkapan seadanya, dan setiap keputusan menentukan apakah kamu pulang. Mampukah kamu keluar dari hutan ini?</p>
+        <form id="nameForm" autocomplete="off" novalidate>
+          <label for="nameInput">Siapa namamu, penjelajah?</label>
+          <input type="text" id="nameInput" maxlength="20" placeholder="Tulis namamu di sini…" enterkeyhint="go">
+          <p class="err" id="nameErr" hidden>Tulis namamu dulu ya, supaya ceritanya jadi milikmu.</p>
+          <button class="btn" type="submit">Mulai Bertahan ▶</button>
+        </form>
+        <p class="hint">🎵 Musik latar menyala saat permainan dimulai. Matikan atau nyalakan kapan saja lewat tombol speaker di pojok kanan atas.</p>
+      </div>
+    </section>
+
+    <!-- ===== LAYAR GAME ===== -->
+    <section class="screen" id="screen-game">
+      <header class="hud">
+        <div class="player"><span aria-hidden="true">🧭</span><span class="nm" id="pname"></span></div>
+        <div class="scorebar" id="scoreBar" data-score="0">
+          <span class="lbl">Skor</span>
+          <div class="track"><i id="scoreFill"></i></div>
+          <b id="scoreVal">0</b>
+        </div>
+      </header>
+      <div class="main">
+        <aside class="side">
+          <div class="art" id="art"></div>
+          <div class="stats" id="stats"></div>
+          <div class="inv" id="inv" aria-label="Perlengkapan"></div>
+        </aside>
+        <div class="story" id="story" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ===== LAYAR AKHIR ===== -->
+    <section class="screen" id="screen-end">
+      <div class="endwrap"><div class="end" id="endBox"></div></div>
+    </section>
+  </div>
+
+  <footer class="copy">© Education and Training Departement 2026</footer>
+</main>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= Util ================= */
+const $=s=>document.querySelector(s);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function rnd(seed){let s=seed;return()=>((s=(s*9301+49297)%233280)/233280);}
+
+/* ================= Sinyal ke LMS ================= */
+function kirimSinyalLMS(){
+  try{ window.parent.postMessage("scoreBarFound", "*"); }catch(e){}
+  try{ window.top.postMessage("scoreBarFound", "*"); }catch(e){}
+}
+
+/* ================= Musik latar (Web Audio, tanpa file eksternal) ================= */
+const Music=(function(){
+  let ctx=null,master=null,bus=null,timer=null,step=0,pref=true,running=false;
+  const CH=[[57,60,64],[53,57,60],[48,52,55],[55,59,62]];   // Am - F - C - G
+  const PENTA=[69,72,74,76,79,81];                            // pentatonik A minor
+  const mtof=m=>440*Math.pow(2,(m-69)/12);
+
+  function init(){
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC) return false;
+    try{
+      ctx=new AC();
+      master=ctx.createGain();master.gain.value=0;master.connect(ctx.destination);
+      bus=ctx.createGain();
+      const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1600;lp.Q.value=.5;
+      const dl=ctx.createDelay(1.5);dl.delayTime.value=.44;
+      const fb=ctx.createGain();fb.gain.value=.4;
+      const dlp=ctx.createBiquadFilter();dlp.type='lowpass';dlp.frequency.value=1200;
+      bus.connect(lp);lp.connect(master);
+      lp.connect(dl);dl.connect(dlp);dlp.connect(fb);fb.connect(dl);dlp.connect(master);
+      // desir angin lembut
+      const len=ctx.sampleRate*2,buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);
+      let last=0;for(let i=0;i<len;i++){const w=Math.random()*2-1;last=(last+.02*w)/1.02;d[i]=last*3.5;}
+      const src=ctx.createBufferSource();src.buffer=buf;src.loop=true;
+      const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=420;bp.Q.value=.6;
+      const wg=ctx.createGain();wg.gain.value=.09;
+      const lfo=ctx.createOscillator();lfo.frequency.value=.12;
+      const lg=ctx.createGain();lg.gain.value=.05;
+      lfo.connect(lg);lg.connect(wg.gain);
+      src.connect(bp);bp.connect(wg);wg.connect(master);
+      src.start();lfo.start();
+      return true;
+    }catch(e){ctx=null;return false;}
+  }
+  function pad(f,t,dur,v){
+    const o=ctx.createOscillator(),o2=ctx.createOscillator(),g=ctx.createGain();
+    o.type='triangle';o.frequency.value=f;o2.type='sine';o2.frequency.value=f*1.004;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+dur*.38);g.gain.linearRampToValueAtTime(0,t+dur);
+    o.connect(g);o2.connect(g);g.connect(bus);
+    o.start(t);o2.start(t);o.stop(t+dur+.1);o2.stop(t+dur+.1);
+  }
+  function pluck(f,t,v){
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sine';o.frequency.value=f;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+1.7);
+    o.connect(g);g.connect(bus);o.start(t);o.stop(t+1.8);
+  }
+  function bar(){
+    if(!ctx) return;
+    const t=ctx.currentTime+.05,c=CH[step%4];
+    c.forEach(m=>pad(mtof(m),t,4.4,.045));
+    pad(mtof(c[0]-12),t,4.4,.06);
+    [.4,1.4,2.2,3.1].forEach(o=>{if(Math.random()<.65)pluck(mtof(PENTA[(Math.random()*PENTA.length)|0]),t+o,.05);});
+    step++;
+  }
+  function play(){
+    if(!pref) return;
+    if(!ctx&&!init()) return;
+    if(ctx.resume) ctx.resume();
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setTargetAtTime(.8,ctx.currentTime,.6);
+    if(!timer){bar();timer=setInterval(bar,4000);}
+    running=true;
+  }
+  function stop(){
+    if(timer){clearInterval(timer);timer=null;}
+    if(ctx){
+      master.gain.cancelScheduledValues(ctx.currentTime);
+      master.gain.setTargetAtTime(0,ctx.currentTime,.25);
+      setTimeout(()=>{if(!pref&&ctx)ctx.suspend();},1200);
+    }
+    running=false;
+  }
+  function toggle(){pref=!pref;if(pref)play();else stop();return pref;}
+  function sfx(kind){
+    if(!ctx||!pref||ctx.state!=='running') return;
+    const t=ctx.currentTime;
+    const seq=kind==='good'?[523,659,784]:kind==='bad'?[247,196]:[440];
+    seq.forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain(),at=t+i*.1;
+      o.type=kind==='bad'?'sine':'triangle';o.frequency.value=f;
+      g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(.12,at+.02);g.gain.exponentialRampToValueAtTime(.0001,at+.3);
+      o.connect(g);g.connect(ctx.destination);o.start(at);o.stop(at+.35);
+    });
+  }
+  document.addEventListener('visibilitychange',()=>{
+    if(!ctx||!pref||!running) return;
+    if(document.hidden){clearInterval(timer);timer=null;ctx.suspend();}
+    else{ctx.resume();if(!timer){bar();timer=setInterval(bar,4000);}}
+  });
+  return{play,stop,toggle,sfx,get pref(){return pref;}};
+})();
+
+/* ================= Ilustrasi SVG ================= */
+const PAL={
+  dusk :['#2a2a5e','#b84b4b','#f2a65a','#24343a','#16262a','#0f1c1f','#1e2a22'],
+  night:['#050a1a','#0c2230','#123a3a','#0b1c1a','#0a1a17','#06110f','#0e1a14'],
+  dawn :['#3a5570','#d9a38f','#f6dfb0','#2f4a45','#244038','#183029','#2a3f30'],
+  day  :['#4aa3df','#9fd6ee','#e3f4f8','#4d8c62','#2f6f45','#1f5535','#3b6b3a'],
+  storm:['#20262f','#3b4552','#58636f','#1f2f2e','#17262a','#101c1f','#1b2a22']
+};
+function pines(seed,n,y,h,fill,x0,x1){
+  const r=rnd(seed);let o='';
+  for(let i=0;i<n;i++){
+    const x=x0+(x1-x0)*(i+.15+r()*.7)/n,hh=h*(.72+r()*.5),w=hh*.3,f=v=>v.toFixed(1);
+    o+=`<polygon points="${f(x)},${f(y-hh)} ${f(x-w)},${f(y-hh*.38)} ${f(x+w)},${f(y-hh*.38)}" fill="${fill}"/><polygon points="${f(x)},${f(y-hh*.72)} ${f(x-w*1.3)},${y} ${f(x+w*1.3)},${y}" fill="${fill}"/>`;
+  }
+  return o;
+}
+function me(x,y){
+  return `<g transform="translate(${x} ${y})"><ellipse cy="2" rx="9" ry="2.4" fill="rgba(0,0,0,.35)"/><rect x="-4" y="-7" width="3.6" height="8" rx="1" fill="#36465c"/><rect x=".4" y="-7" width="3.6" height="8" rx="1" fill="#36465c"/><rect x="-9" y="-22" width="6" height="13" rx="2.5" fill="#6b4a2f"/><rect x="-5" y="-23" width="10" height="17" rx="3.5" fill="#e0833a"/><circle cy="-28" r="5" fill="#f1c9a0"/><path d="M-5.6 -29a5.6 5.6 0 0 1 11.2 0z" fill="#2f5d3a"/><rect x="-6" y="-29.4" width="12" height="1.6" fill="#2f5d3a"/></g>`;
+}
+let artN=0;
+function art(cfg){
+  const P=PAL[cfg.sky],ex=cfg.ex||[],has=k=>ex.indexOf(k)>-1,gid='sky'+(++artN);
+  let s=`<svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${esc(cfg.alt||'Ilustrasi hutan')}"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P[0]}"/><stop offset=".62" stop-color="${P[1]}"/><stop offset="1" stop-color="${P[2]}"/></linearGradient></defs><rect width="400" height="120" fill="url(#${gid})"/>`;
+  if(cfg.sky==='night'){
+    const r=rnd(7);
+    for(let i=0;i<34;i++) s+=`<circle class="tw" cx="${(r()*400).toFixed(0)}" cy="${(r()*55).toFixed(0)}" r="${(.4+r()*.9).toFixed(1)}" fill="#fff" opacity="${(.4+r()*.6).toFixed(2)}" style="animation-delay:${(-r()*3).toFixed(1)}s"/>`;
+    s+=`<circle cx="335" cy="26" r="20" fill="#f4f1d0" opacity=".15"/><circle cx="335" cy="26" r="10" fill="#f4f1d0"/>`;
+  }
+  if(cfg.sky==='dusk') s+=`<circle cx="300" cy="${cfg.sunY||72}" r="17" fill="#ffd27a" opacity=".92"/>`;
+  if(cfg.sky==='dawn') s+=`<circle cx="90" cy="84" r="15" fill="#fff0b8" opacity=".9"/>`;
+  if(cfg.sky==='day') s+=`<circle cx="338" cy="24" r="22" fill="#fff6bf" opacity=".28"/><circle cx="338" cy="24" r="13" fill="#fff6bf"/><ellipse cx="90" cy="26" rx="34" ry="8" fill="#fff" opacity=".7"/><ellipse cx="200" cy="16" rx="28" ry="7" fill="#fff" opacity=".6"/>`;
+  if(cfg.sky==='storm') s+=`<ellipse cx="90" cy="20" rx="80" ry="18" fill="#12171d" opacity=".8"/><ellipse cx="260" cy="14" rx="100" ry="20" fill="#12171d" opacity=".85"/><ellipse cx="370" cy="30" rx="60" ry="14" fill="#171d24" opacity=".8"/><polygon class="bolt" points="300,30 288,58 298,58 290,84 312,50 302,50 308,30" fill="#fff7b0"/>`;
+  s+=`<path d="M0 86Q70 62 150 80T300 74T400 84V120H0Z" fill="${P[3]}"/>`;
+  s+=pines(11,14,96,34,P[4],0,400);
+  s+=pines(5,9,104,54,P[5],0,400);
+  s+=`<rect y="102" width="400" height="18" fill="${P[6]}"/>`;
+  if(has('river')) s+=`<path d="M0 108Q80 100 160 107T320 104T400 106V120H0Z" fill="#3f9bc4"/><path class="shim" d="M20 112h40M120 115h50M240 111h45M330 116h40" stroke="#bfeaff" stroke-width="1.4" stroke-linecap="round" opacity=".75"/>`;
+  if(has('camp')) s+=`<polygon points="235,104 262,76 289,104" fill="#6c6a5c"/><polygon points="262,76 268,104 289,104" fill="#585648"/><path d="M248 104l14-20" stroke="#3d3b30" stroke-width="1.5"/><rect x="298" y="95" width="8" height="10" rx="1.5" fill="#b9c2c9"/><ellipse cx="302" cy="95" rx="4" ry="1.4" fill="#e1e7ec"/><ellipse cx="208" cy="106" rx="14" ry="3" fill="#2a2a2a"/>`;
+  if(has('shelter')) s+=`<line x1="215" y1="105" x2="262" y2="68" stroke="#4a3320" stroke-width="3"/><polygon points="228,105 262,68 292,105" fill="#2f5d3a"/><polygon points="236,105 262,78 284,105" fill="#3c7447" opacity=".9"/><path d="M230 104H290" stroke="#8a6a3b" stroke-width="3"/>`;
+  if(has('fire')) s+=`<g transform="translate(176 106)"><ellipse class="glow" rx="26" ry="9" cy="-4" fill="rgba(255,170,60,.28)"/><path class="flame" d="M0 0C-7-6-4-14 0-22 4-14 7-6 0 0Z" fill="#ffb02e"/><path class="flame f2" d="M0 0C-4-4-2-9 0-13 2-9 4-4 0 0Z" fill="#ffe27a"/><rect x="-9" y="-1" width="18" height="3" rx="1.5" fill="#4a2f1b"/></g>`;
+  if(cfg.me!==false) s+=me(has('river')||has('camp')?110:120,105);
+  s+=pines(21,3,118,92,P[5],-10,62)+pines(23,3,118,92,P[5],338,410);
+  if(has('fog')) s+=`<ellipse class="fog" cx="100" cy="96" rx="120" ry="12" fill="#fff" opacity=".22"/><ellipse class="fog f2" cx="300" cy="103" rx="140" ry="14" fill="#fff" opacity=".18"/>`;
+  if(has('rain')){const r=rnd(3);for(let i=0;i<40;i++)s+=`<line class="drop" x1="${(r()*410).toFixed(0)}" y1="0" x2="${(r()*410-3).toFixed(0)}" y2="9" style="animation-delay:${(-r()*.7).toFixed(2)}s"/>`;}
+  if(has('eyes')) s+=`<g class="eyes"><circle cx="318" cy="85" r="1.6" fill="#ffd54a"/><circle cx="325" cy="85" r="1.6" fill="#ffd54a"/><circle cx="46" cy="90" r="1.4" fill="#ffd54a"/><circle cx="52" cy="90" r="1.4" fill="#ffd54a"/></g>`;
+  if(has('heli')) s+=`<g transform="translate(300 34)"><ellipse rx="16" ry="7" fill="#d8e3ea"/><rect x="-36" y="-2" width="22" height="3" fill="#b8c6cf"/><path d="M-6-4h14a2 2 0 0 1 2 2v4h-18z" fill="#6aa8d8" opacity=".9"/><line class="rotor" x1="-28" y1="-9" x2="28" y2="-9" stroke="#334" stroke-width="2"/><line x1="0" y1="-8" x2="0" y2="-5" stroke="#334" stroke-width="2"/></g>`;
+  if(has('sos')) s+=`<text x="230" y="115" font-size="9" font-weight="700" fill="#f3efe2" letter-spacing="4" font-family="Arial,sans-serif">SOS</text>`;
+  if(has('glint')) s+=`<g class="glint" transform="translate(134 80)"><polygon points="0,-9 2,-2 9,0 2,2 0,9 -2,2 -9,0 -2,-2" fill="#fff"/></g>`;
+  return s+'</svg>';
+}
+
+/* ================= Data permainan ================= */
+const ITEMS={
+  jaket:['🧥','Jaket'],botol:['🧴','Botol plastik'],korek:['🔥','Korek api'],foil:['🪞','Foil snack'],
+  hp:['📱','HP 8%'],kaleng:['🥫','Kaleng bekas'],tali:['🪢','Tali nilon'],kantong:['🛍️','Kantong plastik']
+};
+const ORDER=['start','plan','shelter','fire','night','morning','old_camp','river','navigate','weather','signal'];
+
+const SCENES={
+  start:{when:'Hari 1 · Sore',title:'Jalur yang Menghilang',art:{sky:'dusk',sunY:74,ex:['fog'],alt:'Hutan menjelang senja'},
+    text:`{nama}, kamu mendaki sendirian dan hanya sempat memberi kabar samar ke teman. Kini jalur setapak lenyap di antara pepohonan yang tampak sama ke segala arah. Langit mulai jingga, HP tinggal 8% dan tidak ada sinyal. Jantungmu berdebar kencang. Apa langkah pertamamu?`,
+    choices:[
+      {q:'good',t:'Berhenti, duduk, tarik napas, lalu pikirkan langkah selanjutnya',fx:{morale:10,score:20},next:'plan',
+        res:'Napasmu mulai teratur. Kamu duduk di batang pohon, mengamati sekeliling, dan menghitung apa yang kamu punya: waktu sekitar satu jam, sebuah korek api, dan kepala yang dingin.',
+        tip:'Prinsip STOP: Stop (berhenti), Think (berpikir), Observe (amati sekitar), Plan (susun rencana). Panik menguras tenaga dan merusak keputusan.'},
+      {q:'bad',t:'Lari ke arah yang tampak paling terbuka',fx:{energy:-25,water:-12,morale:-10,score:0},next:'plan',
+        res:'Kamu berlari tanpa arah. Napas terengah, tenggorokan kering, dan kamu justru makin tidak tahu posisimu sekarang.',
+        tip:'Berlari tanpa rencana menghabiskan air dan tenaga, serta membawamu menjauh dari titik terakhir yang kamu kenal.'},
+      {q:'ok',t:'Berteriak minta tolong terus-menerus',fx:{water:-8,morale:-5,score:6},next:'plan',
+        res:'Suaramu cepat serak. Hanya burung-burung yang terbangun dan beterbangan.',
+        tip:'Berteriak boleh, tapi hemat: pakai pola tiga (3 teriakan, jeda, ulangi), yaitu isyarat bahaya universal, agar suara dan air tidak terbuang.'}
+    ]},
+
+  plan:{when:'Hari 1 · Senja',title:'Menentukan Prioritas',art:{sky:'dusk',sunY:92,alt:'Senja di hutan'},
+    text:`Sisa cahaya mungkin hanya satu jam. Udara mulai dingin. Kamu teringat Aturan 3: manusia bertahan sekitar 3 menit tanpa udara, 3 jam tanpa tempat berlindung di cuaca ekstrem, 3 hari tanpa air, dan 3 minggu tanpa makanan. Apa yang kamu kerjakan lebih dulu?`,
+    choices:[
+      {q:'good',t:'Cari lokasi yang aman dan kumpulkan bahan tempat berlindung selagi masih terang',fx:{energy:-8,score:20},next:'shelter',
+        res:'Kamu memilih area datar yang tidak terlalu rendah, lalu mulai mengumpulkan ranting dan daun kering selagi cahaya masih ada.',
+        tip:'Urutan prioritas: aman dan hangat dulu (shelter), lalu air, baru makanan. Dingin dan gelap menyerang dalam hitungan jam, lapar baru terasa berminggu-minggu kemudian.'},
+      {q:'ok',t:'Cari air dulu sebelum malam',fx:{energy:-15,water:-6,morale:-5,score:6},next:'shelter',
+        res:'Kamu menyusuri semak-semak mencari aliran air. Tidak ada. Gelap datang cepat, dan kamu kembali dengan tangan hampa serta badan lelah.',
+        tip:'Air penting, tapi dingin dan gelap lebih mendesak malam ini. Selesaikan yang paling cepat mengancam lebih dulu.'},
+      {q:'bad',t:'Cari buah liar untuk dimakan',fx:{hp:-15,water:-10,morale:-5,score:0},next:'shelter',
+        res:'Buah merah mengilap itu terasa manis… lalu perutmu melilit. Mual dan keringat dingin membuatmu terkapar di tanah.',
+        tip:'Jangan makan tumbuhan atau jamur yang tidak kamu kenal. Makanan adalah prioritas paling akhir, sedangkan risiko keracunannya besar.'}
+    ]},
+
+  shelter:{when:'Hari 1 · Malam',title:'Tempat Berlindung',art:{sky:'dusk',sunY:100,ex:['shelter'],alt:'Pondok darurat dari ranting'},
+    text:`Kamu menemukan batang pohon tumbang yang kokoh dan banyak ranting berserakan. Tanah mulai dingin dan lembap, angin mulai terasa menusuk. Bagaimana kamu menghabiskan malam pertama?`,
+    choices:[
+      {q:'good',t:'Bangun pondok miring: sandarkan ranting ke batang, tutup dengan daun, dan alasi tanah dengan daun kering',fx:{energy:-10,morale:10,hp:5,score:25},next:'fire',
+        res:'Ranting disandarkan ke batang tumbang, ditutup daun lebat, dan lantainya kamu alasi tumpukan daun kering setebal telapak tangan. Ruang kecil ini langsung terasa lebih hangat.',
+        tip:'Shelter kecil menyimpan panas tubuh. Alasi tanah (insulasi) karena tanah menyedot panas tubuh jauh lebih cepat daripada udara.'},
+      {q:'bad',t:'Tidur di tanah terbuka beralas jaket saja',fx:{hp:-14,morale:-10,energy:-5,score:0},next:'fire',
+        res:'Angin malam menusuk dan tanah menyedot hangat tubuhmu. Kamu sadar ini tidak akan cukup untuk bertahan semalaman.',
+        tip:'Tanpa atap dan alas, tubuh kehilangan panas lewat angin dan tanah. Dingin bisa melemahkanmu sebelum kamu sempat sadar.'},
+      {q:'bad',t:'Berbaring di lembah rendah dekat alur kering',fx:{hp:-12,energy:-8,morale:-8,score:0},next:'fire',
+        res:'Udara dingin mengendap di lembah. Kamu terbangun menggigil dan mendengar air mulai mengalir di alur yang tadinya kering.',
+        tip:'Hindari lembah rendah dan alur kering: udara dingin menumpuk di bawah, dan air bah dari hulu bisa datang tiba-tiba.'}
+    ]},
+
+  fire:{when:'Hari 1 · Malam',title:'Api Pertama',art:{sky:'night',ex:['shelter','fire'],alt:'Api unggun kecil di depan pondok'},
+    text:`Gelap total. Kamu punya satu korek api dan jumlah nyalanya terbatas, jadi harus dipakai bijak. Di sekitarmu ada daun kering, ranting kecil, dan kayu besar yang sebagian lembap.`,
+    choices:[
+      {q:'good',req:['korek'],t:'Siapkan bahan bertahap (daun kering, ranting kecil, kayu besar), baru nyalakan',fx:{morale:15,hp:5,energy:-5,score:30},next:'night',
+        res:'Satu goresan korek, dan serat daun kering mulai membara. Perlahan kamu menambah ranting kecil, lalu kayu yang lebih besar. Api hangat menyala, dan hutan yang mengerikan terasa lebih ramah.',
+        tip:'Urutan api: tinder (pemantik: daun atau serat kering) → kindling (ranting kecil) → fuel (kayu besar). Siapkan semuanya SEBELUM menyalakan agar korek tidak terbuang.'},
+      {q:'bad',take:['korek'],t:'Langsung bakar kayu besar yang masih lembap',fx:{morale:-15,hp:-5,energy:-8,score:0},next:'night',
+        res:'Korek menyala, tapi kayu besar yang lembap hanya berasap. Dua, tiga kali kamu coba, sampai korekmu habis. Kini kamu tak punya sumber api lagi.',
+        tip:'Kayu besar atau basah tidak menyala tanpa bara dari bahan halus dan kering. Korek adalah alat yang langka, jangan dihambur-hamburkan.'},
+      {q:'ok',t:'Jangan menyalakan api demi menghemat korek',fx:{hp:-10,morale:-10,score:5},next:'night',
+        res:'Kamu menggigil semalaman demi menghemat korek. Esok pagi tubuhmu kaku dan semangatmu anjlok.',
+        tip:'Hemat itu bagus, tapi api juga dipakai untuk merebus air, memberi sinyal, dan menjaga semangat. Gunakan dengan cerdas, bukan dihindari.'}
+    ]},
+
+  night:{when:'Hari 1 · Tengah Malam',title:'Suara-suara Hutan',art:{sky:'night',ex:['shelter','fire','eyes'],alt:'Malam di hutan dengan mata hewan bersinar'},
+    text:`Dedaunan berderak, serangga bernyanyi, dan ada suara hewan di kejauhan. Matamu berat, tapi pikiranmu penuh. Kamu harus memutuskan bagaimana melewati sisa malam ini.`,
+    choices:[
+      {q:'good',t:'Jaga api tetap kecil, beristirahat, dan pasang mode pesawat di HP untuk menghemat baterai',fx:{energy:25,hp:5,morale:5,water:-6,score:20},next:'morning',
+        res:'Kamu menjaga api tetap kecil, memasang mode pesawat, lalu beristirahat sambil tetap waspada. Pagi menyambutmu dengan tubuh yang lebih segar.',
+        tip:'Istirahat memulihkan energi dan ketajaman berpikir. Hemat baterai HP untuk hal penting, misalnya kompas offline atau panggilan darurat bila tiba-tiba ada sinyal.'},
+      {q:'bad',t:'Berjalan di kegelapan untuk mencari jalan keluar',fx:{hp:-20,energy:-15,morale:-10,score:0},next:'morning',
+        res:'Kamu terpeleset di lereng gelap, lututmu lecet dan pergelangan kakimu terkilir. Setelah berjam-jam, kamu tak yakin sudah sejauh apa dari api tadi.',
+        tip:'Bergerak malam hari di hutan sangat berisiko: tak terlihat, mudah jatuh, mudah makin tersesat. Tunggu terang.'},
+      {q:'ok',take:['hp'],t:'Nyalakan senter HP sepanjang malam sambil mencoba menelepon',fx:{energy:5,morale:-8,score:4},next:'morning',
+        res:'Senter HP-mu mati sebelum tengah malam. Tidak ada sinyal sama sekali, dan kini kamu tak punya HP yang menyala lagi.',
+        tip:'Tanpa sinyal, menelepon percuma. Baterai adalah sumber daya terbatas: pakai mode pesawat dan simpan untuk hal yang benar-benar perlu.'}
+    ]},
+
+  morning:{when:'Hari 2 · Pagi',title:'Haus',art:{sky:'dawn',ex:['fog'],alt:'Pagi berkabut di hutan'},
+    text:`Embun menempel di dedaunan. Mulutmu kering, kepalamu berat. Persediaan air tinggal sedikit, dan kamu butuh sumber air yang aman. Apa yang kamu lakukan?`,
+    choices:[
+      {q:'good',req:['botol','jaket'],t:'Seka rumput berembun dengan lengan jaket, peras ke botol, lalu turuni lembah mencari aliran air',fx:{water:20,energy:-8,score:25},next:'old_camp',
+        res:'Kamu menyeka rumput berembun dengan lengan jaket dan memerasnya ke botol, tetes demi tetes. Tidak banyak, tapi cukup membasahi tenggorokan. Kamu juga memperhatikan kontur tanah: air mengalir ke bawah, jadi lembah di timur adalah harapanmu.',
+        tip:'Embun bisa menjadi sumber air darurat. Dan air mengalir ke tempat lebih rendah, jadi ikuti kontur menurun untuk menemukan sungai.'},
+      {q:'bad',t:'Minum air genangan di cekungan terdekat',fx:{water:10,hp:-20,morale:-5,score:0},next:'old_camp',
+        res:'Airnya keruh dan berbau. Lega sesaat, lalu perutmu bergejolak. Diare membuatmu kehilangan lebih banyak cairan daripada yang kamu minum.',
+        tip:'Air genangan penuh bakteri dan parasit. Diare dapat membuat tubuh kehilangan cairan lebih banyak daripada yang diminum.'},
+      {q:'ok',t:'Panjat bukit tertinggi untuk melihat seluruh area',fx:{energy:-18,water:-8,morale:5,score:10},next:'old_camp',
+        res:'Dari puncak, kamu melihat celah lembah dengan pantulan cahaya di kejauhan, mungkin sungai. Tapi pendakian itu menguras tenagamu.',
+        tip:'Titik tinggi membantu orientasi, tapi harganya energi dan air. Lakukan setelah kebutuhan dasar terpenuhi.'}
+    ]},
+
+  old_camp:{when:'Hari 2 · Siang',title:'Bekas Kemah',art:{sky:'day',ex:['camp'],alt:'Bekas kemah di tepi hutan'},
+    text:`Menuruni lembah, kamu menemukan bekas kemah yang lama ditinggalkan: abu api unggun, sampah, dan beberapa benda berserakan. Satu-dua benda mungkin bisa menjadi alat bertahan yang berharga.`,
+    choices:[
+      {q:'good',give:['kaleng','tali','kantong'],t:'Periksa teliti dan ambil yang berguna: kaleng, tali, dan kantong plastik',fx:{morale:10,energy:-5,score:25},next:'river',
+        res:'Di antara sampah, kamu menemukan kaleng bekas yang masih utuh, segulung tali nilon, dan kantong plastik besar. Barang buangan orang lain kini jadi perlengkapan berhargamu.',
+        tip:'Improvisasi: kaleng = panci perebus, tali = pengikat shelter atau poncho, kantong plastik = poncho darurat atau penampung air hujan.'},
+      {q:'bad',t:'Makan sisa makanan kaleng yang tergeletak di sana',fx:{hp:-18,water:-5,score:0},next:'river',
+        res:'Kalengnya menggembung dan berkarat. Baru beberapa suap, perutmu mual hebat dan kamu muntah.',
+        tip:'Makanan kaleng yang menggembung, penyok parah, atau berkarat bisa mengandung bakteri berbahaya. Jangan dimakan.'},
+      {q:'ok',t:'Abaikan dan lanjut berjalan agar tidak buang waktu',fx:{morale:-5,score:5},next:'river',
+        res:'Kamu melangkah melewatinya karena takut kehabisan waktu. Belakangan, kamu menyesal tidak membawa satu pun.',
+        tip:'Memeriksa lingkungan dengan teliti sering memberi hasil lebih besar dari yang dikira. Terburu-buru bisa membuatmu melewatkan sumber daya.'}
+    ]},
+
+  river:{when:'Hari 2 · Sore',title:'Sungai Kecil',art:{sky:'day',ex:['river'],alt:'Sungai kecil yang jernih'},
+    text:`Akhirnya, aliran sungai kecil yang jernih. Airnya tampak bening, tapi di hutan, bening tidak berarti aman: kuman dan parasit tak terlihat mata. Bagaimana kamu minum?`,
+    choices:[
+      {q:'good',req:['kaleng','korek'],t:'Saring dengan kain dan botol berisi pasir, lalu rebus di kaleng sampai mendidih',fx:{water:45,hp:5,morale:10,energy:-8,score:30},next:'navigate',
+        res:'Kamu menyaring air lewat kain dan botol berisi pasir, lalu merebusnya di kaleng sampai benar-benar mendidih. Setelah agak dingin, air hangat yang bersih itu kamu minum pelan-pelan.',
+        tip:'Saring dulu untuk membuang kotoran, lalu didihkan minimal 1 menit untuk membunuh kuman. Air jernih belum tentu aman.'},
+      {q:'bad',t:'Minum langsung dari sungai, airnya jernih sekali',fx:{water:35,hp:-25,morale:-5,score:0},next:'navigate',
+        res:'Airnya segar dan dingin… tapi beberapa jam kemudian perutmu melilit hebat.',
+        tip:'Jernih bukan berarti bebas kuman, parasit, atau kotoran satwa. Air sungai di hutan pun bisa terkontaminasi.'},
+      {q:'ok',t:'Saring dengan kain dan botol, lalu minum tanpa direbus',fx:{water:35,hp:-8,score:8},next:'navigate',
+        res:'Kamu menyaring air dengan kain, mengisi botol, dan langsung meminumnya. Kelihatannya cukup bersih, tapi perutmu agak tidak nyaman.',
+        tip:'Menyaring hanya membuang kotoran, tidak membunuh kuman. Perebusan adalah pelindung terakhirmu.'}
+    ]},
+
+  navigate:{when:'Hari 2 · Sore',title:'Arah Keluar',art:{sky:'dusk',sunY:84,ex:['river'],alt:'Sungai di sore hari'},
+    text:`Dengan air terpenuhi, kepalamu lebih jernih. Matahari condong ke barat. Dua jalur tampak: menyusuri aliran sungai yang menurun ke lembah, atau memotong lurus lewat hutan lebat yang terlihat seperti jalan pintas.`,
+    choices:[
+      {q:'good',t:'Ikuti aliran sungai ke hilir sambil menandai jalur dengan ranting patah',fx:{energy:-14,morale:10,score:25},next:'weather',
+        bonus:[{if:'hp',fx:{score:5,morale:3},res:'Kompas offline di HP-mu (baterai masih tersisa) memastikan hilir mengarah ke timur, ke arah permukiman.'}],
+        res:'Kamu menyusuri tepi sungai dan menandai setiap belokan dengan ranting patah. Langkahmu terasa ringan karena air selalu ada di sampingmu.',
+        tip:'Air mengalir ke tempat yang lebih rendah dan umumnya bertemu sungai besar, jalan, atau permukiman. Dekat air berarti air minum selalu tersedia.'},
+      {q:'bad',t:'Potong lurus lewat hutan lebat agar lebih cepat',fx:{energy:-24,hp:-8,morale:-10,score:0},next:'weather',
+        res:'Dua jam kemudian kamu tiba di pohon tumbang yang sama seperti sebelumnya. Kamu telah berjalan berputar.',
+        tip:'Tanpa penanda arah, manusia cenderung berjalan melingkar. Jangan tinggalkan sumber air hanya demi jalan pintas.'},
+      {q:'ok',t:'Tetap di sini dan menunggu tanpa membuat tanda apa pun',fx:{energy:8,morale:-10,score:5},next:'weather',
+        res:'Kamu duduk dan menunggu. Sore berlalu, tak seorang pun datang, dan kecemasan menumpuk.',
+        tip:'Menunggu di tempat bisa tepat bila ada yang tahu rutemu, tapi kamu tetap harus mudah ditemukan (sinyal, area terbuka). Diam tanpa tanda menyulitkan tim SAR.'}
+    ]},
+
+  weather:{when:'Hari 2 · Malam',title:'Badai',art:{sky:'storm',ex:['rain'],alt:'Hujan deras dan petir di hutan'},
+    text:`Langit mendadak gelap. Hujan deras mengguyur dan petir menyambar tak jauh dari tempatmu. Suhu turun cepat, tanah menjadi licin. Kamu harus bertindak sekarang.`,
+    choices:[
+      {q:'good',t:'Berlindung di cekungan bawah tebing landai, jauh dari pohon tinggi dan alur air, sambil menampung air hujan',fx:{water:18,energy:-5,morale:5,score:25},next:'signal',
+        bonus:[
+          {if:'kantong',fx:{hp:6,morale:4,score:5},res:'Kantong plastik kamu jadikan poncho dan penampung air hujan, sehingga tubuhmu tetap kering.'},
+          {if:'tali',fx:{score:3},res:'Tali nilon mengencangkan poncho agar tidak terbang tertiup angin.'}
+        ],
+        res:'Kamu bergegas ke cekungan di bawah tebing landai yang kering, jauh dari pohon tinggi dan alur air. Botolmu kamu letakkan di tepi atap untuk menampung tetesan hujan.',
+        tip:'Saat badai: jauhi pohon tinggi dan alur air, cari cekungan atau tebing landai, dan tetap kering. Basah dan berangin adalah resep hipotermia.'},
+      {q:'bad',t:'Berteduh di bawah pohon tertinggi',fx:{hp:-25,morale:-10,score:0},next:'signal',
+        res:'Petir menyambar pohon itu tak jauh darimu. Ledakannya melemparkan serpihan kayu dan membuatmu terpental dan pingsan sesaat.',
+        tip:'Pohon tertinggi di area terbuka adalah target petir. Jangan berlindung di bawahnya saat badai.'},
+      {q:'bad',t:'Terus berjalan menembus hujan agar cepat sampai',fx:{hp:-14,energy:-20,morale:-5,score:0},next:'signal',
+        res:'Pakaianmu kuyup dan jalan licin. Kamu terpeleset dan menggigil makin parah.',
+        tip:'Hipotermia bisa terjadi walau suhu di atas 10°C bila kamu basah dan berangin. Tetap kering lebih penting daripada cepat.'}
+    ]},
+
+  signal:{when:'Hari 3 · Pagi',title:'Dengung di Kejauhan',art:{sky:'day',ex:['heli','sos','glint'],alt:'Helikopter di langit pagi'},
+    text:`Badai reda dan pagi bersinar cerah. Dari kejauhan terdengar dengung mesin, mungkin helikopter tim SAR! Hutan di sekelilingmu rapat, tapi ada area terbuka di tepi sungai. Ini kesempatanmu.`,
+    choices:[
+      {q:'good',req:['foil'],t:'Ke area terbuka, pantulkan sinar matahari dengan foil, dan susun tanda SOS dari batu dan ranting',fx:{morale:15,energy:-8,score:30},next:'END',
+        res:'Kilatan perak dari cermin foilmu memotong kabut hutan. Kamu juga menyusun tanda SOS besar dari batu dan ranting di tanah terbuka. Dengung mesin itu semakin dekat, lalu berputar tepat di atasmu!',
+        tip:'Cermin sinyal terlihat dari jarak jauh. Kombinasikan dengan tanda besar di tanah. Pola tiga (3 kilatan, 3 asap, 3 api) adalah isyarat darurat universal.'},
+      {q:'ok',t:'Buat api unggun besar dari ranting kering agar asapnya terlihat',fx:{hp:-12,energy:-10,morale:5,score:6},next:'END',
+        res:'Api besar cepat menjalar ke semak kering dan memaksamu lari menjauh. Asap memang naik tinggi, tapi kamu hampir terjebak.',
+        tip:'Asap tebal dibuat dari api kecil yang terkendali di area bersih, ditambah daun hijau atau basah. Bukan api besar di vegetasi kering.'},
+      {q:'bad',t:'Berteriak sekeras mungkin dari tempatmu berdiri',fx:{water:-10,morale:-10,score:3},next:'END',
+        res:'Suaramu tenggelam oleh rimbunnya kanopi dan deru mesin. Helikopter berputar menjauh, dan kamu harus menunggu kesempatan lain.',
+        tip:'Suara cepat habis di hutan dan kalah oleh bising mesin. Sinyal visual (cermin, tanda di tanah, asap) jauh lebih efektif dari udara.'}
+    ]}
+};
+const LEARN=[
+  'STOP: Stop, Think, Observe, Plan. Tenang dulu sebelum bertindak.',
+  'Aturan 3: 3 menit tanpa udara, 3 jam tanpa tempat berlindung (cuaca ekstrem), 3 hari tanpa air, 3 minggu tanpa makanan. Prioritaskan hangat dan aman → air → makanan.',
+  'Shelter kecil dan alas daun (insulasi dari tanah) menjaga panas tubuh.',
+  'Api bertahap: tinder → kindling → kayu besar, dan siapkan semuanya sebelum korek dinyalakan.',
+  'Air: saring lalu didihkan. Jernih belum tentu aman.',
+  'Jangan bergerak di malam hari, hindari berlindung di bawah pohon tinggi saat petir, dan tetap dekat air.',
+  'Minta bantuan dengan sinyal yang terlihat: cermin, tanda SOS di tanah, dan pola tiga.'
+];
+
+/* ================= State ================= */
+let S=null;
+function fresh(name){
+  return{name:name,hp:100,water:70,energy:80,morale:75,score:0,good:0,locked:false,step:0,cause:'',
+    inv:new Set(['jaket','botol','korek','foil','hp'])};
+}
+
+/* ================= Tampilan ================= */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='screen-'+id));
+}
+const STAT_DEF=[['hp','❤️','Sehat'],['water','💧','Air'],['energy','⚡','Energi'],['morale','🧠','Mental']];
+function buildStats(){
+  $('#stats').innerHTML=STAT_DEF.map(d=>`<div class="stat ${d[0]}" id="st-${d[0]}"><div class="row"><span>${d[1]} ${d[2]}</span><b>0</b></div><div class="bar"><i></i></div></div>`).join('');
+}
+function updateStats(){
+  STAT_DEF.forEach(d=>{
+    const el=$('#st-'+d[0]);if(!el) return;
+    el.querySelector('b').textContent=Math.round(S[d[0]]);
+    el.querySelector('i').style.width=S[d[0]]+'%';
+    el.classList.toggle('low',S[d[0]]<25);
+  });
+}
+function renderInv(fresh){
+  const f=fresh||[];
+  $('#inv').innerHTML='<span class="t">Tas:</span>'+Array.from(S.inv).map(k=>`<span class="chip${f.indexOf(k)>-1?' new':''}">${ITEMS[k][0]} ${ITEMS[k][1]}</span>`).join('');
+}
+function setScore(v){
+  const val=$('#scoreVal');
+  val.textContent=v;
+  $('#scoreFill').style.width=clamp(v/320*100,0,100)+'%';
+  $('#scoreBar').setAttribute('data-score',String(v));
+  val.classList.remove('pop');void val.offsetWidth;val.classList.add('pop');
+}
+function fill(t){return esc(t).replace(/\{nama\}/g,'<b>'+esc(S.name)+'</b>');}
+
+/* ================= Logika ================= */
+function applyFx(fx){
+  const notes=[],hp0=S.hp,start={water:S.water,energy:S.energy,morale:S.morale},sc0=S.score;
+  ['hp','water','energy','morale'].forEach(k=>{S[k]=clamp(S[k]+(fx[k]||0),0,100);});
+  if(S.water<=0){S.hp=clamp(S.hp-20,0,100);notes.push('Kamu dehidrasi parah! Kesehatan turun tambahan.');}
+  if(S.energy<=0){S.hp=clamp(S.hp-15,0,100);notes.push('Kamu kehabisan tenaga! Kesehatan turun tambahan.');}
+  if(S.morale<=0){S.hp=clamp(S.hp-10,0,100);notes.push('Semangatmu runtuh! Kesehatan turun tambahan.');}
+  S.score=Math.max(0,S.score+(fx.score||0));
+  return{
+    d:{score:S.score-sc0,hp:S.hp-hp0,water:S.water-start.water,energy:S.energy-start.energy,morale:S.morale-start.morale},
+    notes:notes
+  };
+}
+
+function showScene(id){
+  const sc=SCENES[id];
+  S.locked=false;S.step=ORDER.indexOf(id)+1;
+  $('#art').innerHTML=art(sc.art);
+  const st=$('#story');
+  st.innerHTML=`<div class="tag">${esc(sc.when)} · Misi ${S.step}/${ORDER.length}</div><div class="prog"><i style="width:${((S.step-1)/ORDER.length*100).toFixed(0)}%"></i></div><h2 id="sTitle" tabindex="-1">${esc(sc.title)}</h2><p class="narr">${fill(sc.text)}</p><div class="choices" id="choices"></div><div id="fbBox"></div>`;
+  const box=$('#choices');
+  shuffle(sc.choices.slice()).forEach((c,i)=>{
+    const miss=(c.req||[]).filter(r=>!S.inv.has(r));
+    const b=document.createElement('button');
+    b.type='button';b.className='choice';
+    let need='';
+    if(c.req&&c.req.length){
+      need=miss.length
+        ?`<span class="need">🔒 Butuh: ${miss.map(m=>ITEMS[m][0]+' '+ITEMS[m][1]).join(', ')}</span>`
+        :`<span class="need">Memakai: ${c.req.map(m=>ITEMS[m][0]+' '+ITEMS[m][1]).join(', ')}</span>`;
+    }
+    b.innerHTML=`<span class="k">${'ABC'.charAt(i)}</span><span>${esc(c.t)}${need}</span>`;
+    if(miss.length) b.disabled=true;
+    b.addEventListener('click',()=>choose(sc,c));
+    box.appendChild(b);
+  });
+  st.scrollTop=0;
+  const h=$('#sTitle');if(h&&h.focus) h.focus({preventScroll:true});
+}
+
+function choose(sc,c){
+  if(S.locked) return;
+  S.locked=true;
+  const fx=Object.assign({},c.fx);
+  let res=c.res;
+  (c.bonus||[]).forEach(b=>{
+    if(S.inv.has(b.if)){for(const k in b.fx) fx[k]=(fx[k]||0)+b.fx[k];res+=' '+b.res;}
+  });
+  fx.water=(fx.water||0)-4;                       // waktu berlalu = air berkurang
+  const out=applyFx(fx);
+  const given=c.give||[],taken=c.take||[];
+  given.forEach(i=>S.inv.add(i));
+  taken.forEach(i=>S.inv.delete(i));
+  if(c.q==='good') S.good++;
+  S.cause=c.t;
+
+  updateStats();setScore(S.score);renderInv(given);
+  Music.sfx(c.q==='good'?'good':c.q==='bad'?'bad':'click');
+
+  const ic={score:'⭐',hp:'❤️',water:'💧',energy:'⚡',morale:'🧠'};
+  let chips='';
+  ['score','hp','water','energy','morale'].forEach(k=>{
+    const v=Math.round(out.d[k]);
+    if(v) chips+=`<span class="delta ${v>0?'pos':'neg'}">${ic[k]} ${v>0?'+':'−'}${Math.abs(v)}</span>`;
+  });
+  if(given.length) chips+=`<span class="delta pos">🎒 Dapat: ${given.map(i=>ITEMS[i][0]+' '+ITEMS[i][1]).join(', ')}</span>`;
+  if(taken.length) chips+=`<span class="delta neg">❌ Hilang: ${taken.map(i=>ITEMS[i][0]+' '+ITEMS[i][1]).join(', ')}</span>`;
+
+  const head={good:'Keputusan tepat! 👏',ok:'Lumayan, tapi bisa lebih baik 🤔',bad:'Keputusan berisiko ⚠️'}[c.q];
+  const dead=S.hp<=0,last=c.next==='END';
+  $('#choices').innerHTML=`<div class="picked">Pilihanmu: <b>${esc(c.t)}</b></div>`;
+  $('#fbBox').innerHTML=`<div class="fb ${c.q}"><h3>${head}</h3><p>${esc(res)}</p><div class="chips">${chips}</div>${out.notes.map(n=>`<p class="warn">⚠️ ${esc(n)}</p>`).join('')}<div class="tip"><b>💡 Pelajaran:</b> ${esc(c.tip)}</div><button class="btn" id="nextBtn" type="button">${dead?'Lanjut ▶':last?'Lihat Hasil ▶':'Lanjut ▶'}</button></div>`;
+  const fb=$('#fbBox');
+  if(fb.scrollIntoView) fb.scrollIntoView({behavior:'smooth',block:'nearest'});
+  $('#nextBtn').addEventListener('click',()=>{
+    Music.sfx('click');
+    if(dead) finish('dead');
+    else if(last) finish('win');
+    else showScene(c.next);
+  });
+}
+
+function finish(kind){
+  let bonus=0;
+  if(kind==='win') bonus=Math.round((S.hp+S.water+S.energy+S.morale)/8);
+  S.score+=bonus;
+  const stars=kind==='dead'?0:(S.score>=250?3:S.score>=150?2:1);
+  const n=esc(S.name);
+  let title,text,cfg;
+  if(kind==='dead'){
+    title='Perjalananmu Berhenti di Sini';
+    text=`${n}, kesehatanmu habis setelah keputusan: “${esc(S.cause)}”. Hutan memang tak memberi ampun, tapi setiap kegagalan di sini adalah pelajaran. Coba lagi dengan strategi yang lebih matang.`;
+    cfg={sky:'night',ex:['fog'],me:false,alt:'Hutan di malam hari'};
+  }else if(stars===3){
+    title='Penyintas Sejati! 🏆';
+    text=`Kilatan cermin dan tanda SOS-mu terlihat jelas dari udara. Tim SAR menurunkan tali dan menyambutmu. ${n}, kamu keluar dari hutan dalam kondisi prima berkat keputusan yang cermat.`;
+    cfg={sky:'day',ex:['heli','sos','glint'],alt:'Helikopter penyelamat'};
+  }else if(stars===2){
+    title='Ditemukan dengan Selamat';
+    text=`Tim SAR menemukanmu lelah dan penuh lecet, tapi sehat. ${n}, keputusanmu cukup tepat untuk bertahan hidup. Sedikit lebih cermat, dan kamu bisa lebih prima.`;
+    cfg={sky:'day',ex:['heli'],alt:'Helikopter di langit pagi'};
+  }else{
+    title='Selamat, tapi Nyaris!';
+    text=`Tim SAR akhirnya menemukanmu dalam keadaan lemah dan dehidrasi. ${n}, beberapa keputusanmu hampir fatal. Kamu hidup, dan itu yang terpenting. Pelajari lagi rangkuman di bawah.`;
+    cfg={sky:'dawn',ex:['heli','fog'],alt:'Helikopter di pagi berkabut'};
+  }
+  const starHtml=[1,2,3].map(i=>`<span class="${i<=stars?'on':''}">★</span>`).join('');
+  $('#endBox').innerHTML=`
+    <div class="art">${art(cfg)}</div>
+    <div class="stars" aria-label="${stars} dari 3 bintang">${starHtml}</div>
+    <h2>${title}</h2>
+    <p class="lead">${text}</p>
+    <div class="summary">
+      <div><b>${S.score}</b><span>Skor akhir</span></div>
+      <div><b>${S.good}/${ORDER.length}</b><span>Keputusan tepat</span></div>
+      <div><b>${Math.round(S.hp)}%</b><span>Kesehatan</span></div>
+    </div>
+    <div class="learn"><h3>Rangkuman Pelajaran Bertahan Hidup</h3><ul>${LEARN.map(l=>`<li>${esc(l)}</li>`).join('')}</ul></div>
+    <button class="btn" id="againBtn" type="button">Main Lagi ↻</button>`;
+  $('#againBtn').addEventListener('click',()=>{show('start');$('#nameInput').focus();});
+  setScore(S.score);
+  show('end');
+  $('.endwrap').scrollTop=0;
+  Music.sfx(stars>0?'good':'bad');
+  if(kind==='win') kirimSinyalLMS();
+}
+
+function startGame(name){
+  S=fresh(name);
+  buildStats();updateStats();renderInv();setScore(0);
+  $('#pname').textContent=S.name;
+  show('game');
+  showScene('start');
+  Music.play();
+  Music.sfx('click');
+}
+
+/* ================= Inisialisasi ================= */
+const bgmBtn=$('#bgmBtn');
+function paintBgm(){
+  const on=Music.pref;
+  bgmBtn.classList.toggle('on',on);
+  bgmBtn.classList.toggle('off',!on);
+  bgmBtn.setAttribute('aria-pressed',String(on));
+  bgmBtn.setAttribute('aria-label',on?'Musik latar: nyala. Ketuk untuk mematikan':'Musik latar: mati. Ketuk untuk menyalakan');
+  bgmBtn.title=on?'Musik: nyala':'Musik: mati';
+}
+bgmBtn.addEventListener('click',()=>{Music.toggle();paintBgm();});
+
+$('#startArt').innerHTML=art({sky:'dusk',sunY:74,ex:['fog'],alt:'Hutan menjelang senja'});
+$('#nameForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const inp=$('#nameInput'),err=$('#nameErr');
+  const name=inp.value.replace(/\s+/g,' ').trim().slice(0,20);
+  if(!name){
+    err.hidden=false;
+    inp.classList.remove('shake');void inp.offsetWidth;inp.classList.add('shake');
+    inp.focus();return;
+  }
+  err.hidden=true;
+  startGame(name);
+});
+$('#nameInput').addEventListener('input',()=>{$('#nameErr').hidden=true;});
+
+paintBgm();
+kirimSinyalLMS();   // sinyal awal ke LMS saat modul termuat
+})();
+</script>
+</body>
+</html>
